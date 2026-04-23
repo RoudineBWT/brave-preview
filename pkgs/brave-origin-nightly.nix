@@ -6,5 +6,5 @@ in
 callPackage ./build-brave.nix { } {
   pname = "brave-origin-nightly";
   inherit version hash;
-  url = "https://brave-browser-apt-nightly.s3.brave.com/pool/main/b/brave-origin-nightly/brave-origin-nightly_${version}_amd64.deb";
+  url = "https://github.com/brave/brave-browser/releases/download/v${version}/brave-origin-nightly_${version}_amd64.deb";
 }

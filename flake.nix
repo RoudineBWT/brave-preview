@@ -13,13 +13,15 @@
         brave-nightly = final.callPackage ./pkgs/brave-nightly.nix {};
         brave-beta = final.callPackage ./pkgs/brave-beta.nix {};
         brave-origin-nightly = final.callPackage ./pkgs/brave-origin-nightly.nix {};
+        brave-stable = final.callPackage ./pkgs/brave-stable.nix {};
+        brave-origin-beta = final.callPackage ./pkgs/brave-origin-beta.nix {};
       };
     in
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
-        pkgs = import nixpkgs { 
+        pkgs = import nixpkgs {
           inherit system;
-          overlays = [ overlay ]; 
+          overlays = [ overlay ];
         };
       in
       {
@@ -27,6 +29,8 @@
           brave-nightly = pkgs.brave-nightly;
           brave-beta = pkgs.brave-beta;
           brave-origin-nightly = pkgs.brave-origin-nightly;
+          brave-stable = pkgs.brave-stable;
+          brave-origin-beta = pkgs.brave-origin-beta;
           default = pkgs.brave-nightly;
         };
       }

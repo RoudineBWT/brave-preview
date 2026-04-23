@@ -6,5 +6,5 @@ in
 callPackage ./build-brave.nix { } {
   pname = "brave-origin-beta";
   inherit version hash;
-  url = "https://brave-browser-apt-beta.s3.brave.com/pool/main/b/brave-origin-beta/brave-origin-beta_${version}_amd64.deb";
+  url = "https://github.com/brave/brave-browser/releases/download/v${version}/brave-origin-beta_${version}_amd64.deb";
 }

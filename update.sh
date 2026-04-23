@@ -101,51 +101,17 @@ update_stable_channel() {
   echo "--------------------------------------------------"
 }
 
-# ✅ NOUVELLE FONCTION : récupère le .deb origin depuis le repo APT
-# mais force la VERSION à celle passée en paramètre
-update_apt_channel_pinned() {
-  local APT_HOST=$1
-  local PKG_NAME=$2
-  local TARGET_FILE=$3
-  local PINNED_VERSION=$4   # ← version imposée (celle de nightly/beta)
+update_origin_channel() {
+  local PKG_NAME=$1
+  local TARGET_FILE=$2
+  local PINNED_VERSION=$3
 
-  echo "Updating $PKG_NAME from $APT_HOST (pinned to version $PINNED_VERSION)..."
+  echo "Updating $PKG_NAME (pinned to version $PINNED_VERSION)..."
 
-  local PACKAGES_URL="https://${APT_HOST}/dists/stable/main/binary-amd64/Packages"
-  local PACKAGES
-  PACKAGES=$(curl -s "$PACKAGES_URL" | tr -d '\r')
-
-  local BLOCKS
-  BLOCKS=$(echo "$PACKAGES" | awk -v RS= -v pkg="$PKG_NAME" '$1 == "Package:" && $2 == pkg')
-
-  if [ -z "$BLOCKS" ]; then
-    echo "Error: Could not find $PKG_NAME in $PACKAGES_URL"
-    return 1
-  fi
-
-  # Cherche le filename pour la version exacte demandée
-  local FILENAME
-  FILENAME=$(echo "$BLOCKS" | awk -v ver="$PINNED_VERSION" '
-    /^Version:/ { found = ($2 == ver) }
-    found && /^Filename:/ { print $2; exit }
-  ')
-
-  # Si la version exacte n'est pas dans l'APT, fallback sur la plus récente dispo
-  if [ -z "$FILENAME" ]; then
-    echo "Warning: version $PINNED_VERSION not found in APT, using latest available"
-    local FALLBACK_VERSION
-    FALLBACK_VERSION=$(echo "$BLOCKS" | awk '/^Version:/ { print $2 }' | sort -V | tail -n 1)
-    FILENAME=$(echo "$BLOCKS" | awk -v ver="$FALLBACK_VERSION" '
-      /^Version:/ { found = ($2 == ver) }
-      found && /^Filename:/ { print $2; exit }
-    ')
-    PINNED_VERSION="$FALLBACK_VERSION"
-  fi
-
-  local ASSET_URL="https://${APT_HOST}/${FILENAME}"
+  local ASSET_URL="https://github.com/brave/brave-browser/releases/download/v${PINNED_VERSION}/${PKG_NAME}_${PINNED_VERSION}_amd64.deb"
 
   echo "Asset URL: $ASSET_URL"
-  echo "Prefetching SRI hash..."
+  echo "Prefetching hash..."
   local HASH
   HASH=$(nix-prefetch-url "$ASSET_URL")
   echo "Hash: $HASH"
@@ -157,7 +123,6 @@ update_apt_channel_pinned() {
   UPDATED_VERSIONS["$PKG_NAME"]="$PINNED_VERSION"
   echo "--------------------------------------------------"
 }
-
 # --- Exécution ---
 
 update_channel "Nightly" "pkgs/brave-nightly.nix"
@@ -169,8 +134,8 @@ BETA_VERSION="$LAST_VERSION"
 update_stable_channel "pkgs/brave-stable.nix"
 
 # ✅ Origin suit la même version que son channel parent
-update_apt_channel_pinned "brave-browser-apt-nightly.s3.brave.com" "brave-origin-nightly" "pkgs/brave-origin-nightly.nix" "$NIGHTLY_VERSION"
-update_apt_channel_pinned "brave-browser-apt-beta.s3.brave.com" "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$BETA_VERSION"
+update_origin_channel "brave-origin-nightly" "pkgs/brave-origin-nightly.nix" "$NIGHTLY_VERSION"
+update_origin_channel "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$BETA_VERSION"
 
 if [ "$COMMIT" = true ]; then
   git config --global user.email "github-actions[bot]@users.noreply.github.com"
