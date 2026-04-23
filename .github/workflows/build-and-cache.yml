@@ -3,7 +3,7 @@ name: Build and Cache
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "pkgs/**"
       - "flake.nix"
