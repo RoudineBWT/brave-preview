@@ -213,15 +213,15 @@ stdenv.mkDerivation {
       elif [ -d $out/opt/brave.com/brave-origin-nightly ]; then
         BRAVE_DIR="brave-origin-nightly"
         BRAVE_BINARY="brave-origin-nightly"
-      elif [ -d $out/opt/brave.com/brave ]; then
-        BRAVE_DIR="brave"
-        BRAVE_BINARY="brave-browser"
-      elif [ -d $out/opt/brave.com/brave-origin ]; then
-        BRAVE_DIR="brave-origin"
-        BRAVE_BINARY="brave-origin"
       elif [ -d $out/opt/brave.com/brave-origin-beta ]; then
         BRAVE_DIR="brave-origin-beta"
         BRAVE_BINARY="brave-origin-beta"
+      elif [ -d $out/opt/brave.com/brave-origin ]; then
+        BRAVE_DIR="brave-origin"
+        BRAVE_BINARY="brave-origin"
+      elif [ -d $out/opt/brave.com/brave ]; then
+        BRAVE_DIR="brave"
+        BRAVE_BINARY="brave-browser"
       else
         echo "Error: Could not find a known brave variant directory under $out/opt/brave.com"
         exit 1
@@ -234,7 +234,8 @@ stdenv.mkDerivation {
           --replace-fail /bin/bash ${stdenv.shell} \
           --replace-fail 'CHROME_WRAPPER' 'WRAPPER'
 
-      ln -sf $BINARYWRAPPER $out/bin/${pname}
+      cp $BINARYWRAPPER $out/bin/${pname}
+      chmod +x $out/bin/${pname}
 
       for exe in $out/opt/brave.com/$BRAVE_DIR/{brave,chrome_crashpad_handler}; do
           patchelf \
@@ -248,8 +249,8 @@ stdenv.mkDerivation {
           --replace-warn /usr/bin/brave-browser-beta $out/bin/${pname} \
           --replace-warn /usr/bin/brave-browser-nightly $out/bin/${pname} \
           --replace-warn /usr/bin/brave-origin-nightly $out/bin/${pname} \
-          --replace-warn /usr/bin/brave-origin $out/bin/${pname} \
-          --replace-warn /usr/bin/brave-origin-beta $out/bin/${pname}
+          --replace-warn /usr/bin/brave-origin-beta $out/bin/${pname} \
+          --replace-warn /usr/bin/brave-origin $out/bin/${pname}
 
       # Add StartupWMClass for proper application identification in Wayland compositors
       for desktop in $out/share/applications/*.desktop; do
