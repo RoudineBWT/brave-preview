@@ -3,7 +3,7 @@ name: Update Brave Nightly
 on:
   schedule:
     - cron: "0 */6 * * *"
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,9 +19,11 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Run update script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x update.sh
-          ./update.sh --commit
+          ./update.sh
 
       - name: Verify build
         run: |
