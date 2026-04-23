@@ -5,8 +5,8 @@ set -e
 declare -A UPDATED_VERSIONS
 LAST_VERSION=""
 
-# Override manuel — mettre à "" pour utiliser l'auto-détection
-BETA_VERSION_OVERRIDE="1.91.101"
+# Override manuel pour origin-beta — mettre à "" pour utiliser la même version que brave-beta
+ORIGIN_BETA_VERSION_OVERRIDE="1.91.101"
 
 update_channel() {
   local CHANNEL=$1
@@ -50,31 +50,6 @@ update_channel() {
 
   echo "Updated $TARGET_FILE with version $VERSION and hash $HASH"
   UPDATED_VERSIONS["$CHANNEL"]="$VERSION"
-  LAST_VERSION="$VERSION"
-  echo "--------------------------------------------------"
-}
-
-update_channel_pinned() {
-  local VERSION=$1
-  local TARGET_FILE=$2
-  local CHANNEL_LOWER=$3
-  local ASSET_PREFIX="brave-browser-${CHANNEL_LOWER}_"
-
-  echo "Updating $CHANNEL_LOWER (pinned to $VERSION)..."
-
-  local ASSET_URL="https://github.com/brave/brave-browser/releases/download/v${VERSION}/${ASSET_PREFIX}${VERSION}_amd64.deb"
-
-  echo "Asset URL: $ASSET_URL"
-  echo "Prefetching SRI hash..."
-  local HASH
-  HASH=$(nix-prefetch-url "$ASSET_URL")
-  echo "Hash: $HASH"
-
-  sed -i "s/version = \".*\";/version = \"$VERSION\";/" "$TARGET_FILE"
-  sed -i "s/hash = \".*\";/hash = \"$HASH\";/" "$TARGET_FILE"
-
-  echo "Updated $TARGET_FILE with version $VERSION and hash $HASH"
-  UPDATED_VERSIONS["Beta"]="$VERSION"
   LAST_VERSION="$VERSION"
   echo "--------------------------------------------------"
 }
@@ -157,15 +132,15 @@ update_origin_channel() {
 update_channel "Nightly" "pkgs/brave-nightly.nix"
 NIGHTLY_VERSION="$LAST_VERSION"
 
-if [ -n "$BETA_VERSION_OVERRIDE" ]; then
-  update_channel_pinned "$BETA_VERSION_OVERRIDE" "pkgs/brave-beta.nix" "beta"
-  BETA_VERSION="$BETA_VERSION_OVERRIDE"
-else
-  update_channel "Beta" "pkgs/brave-beta.nix"
-  BETA_VERSION="$LAST_VERSION"
-fi
+update_channel "Beta" "pkgs/brave-beta.nix"
+BETA_VERSION="$LAST_VERSION"
 
 update_stable_channel "pkgs/brave-stable.nix"
 
 update_origin_channel "brave-origin-nightly" "pkgs/brave-origin-nightly.nix" "$NIGHTLY_VERSION"
-update_origin_channel "brave-origin-beta"    "pkgs/brave-origin-beta.nix"    "$BETA_VERSION"
+
+if [ -n "$ORIGIN_BETA_VERSION_OVERRIDE" ]; then
+  update_origin_channel "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$ORIGIN_BETA_VERSION_OVERRIDE"
+else
+  update_origin_channel "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$BETA_VERSION"
+fi
