@@ -10,6 +10,7 @@ for arg in "$@"; do
 done
 
 declare -A UPDATED_VERSIONS
+LAST_VERSION=""
 
 update_channel() {
   local CHANNEL=$1
@@ -19,7 +20,11 @@ update_channel() {
 
   local ASSET_PREFIX="brave-browser-${CHANNEL,,}_"
   RELEASE_DATA=$(curl -s "https://api.github.com/repos/brave/brave-browser/releases?per_page=100" | jq -r --arg channel "$CHANNEL" --arg prefix "$ASSET_PREFIX" \
-    'map(select(.name? and (.name | contains($channel)) and .assets? and (.assets | any(.name | startswith($prefix) and endswith("_amd64.deb")))))
+    'map(select(
+      .prerelease == true and
+      .name? and (.name | contains($channel)) and
+      .assets? and (.assets | any(.name | startswith($prefix) and endswith("_amd64.deb")))
+    ))
     | sort_by(.published_at)
     | reverse
     | .[0]
@@ -53,10 +58,8 @@ update_channel() {
 
   echo "Updated $TARGET_FILE with version $VERSION and hash $HASH"
   UPDATED_VERSIONS["$CHANNEL"]="$VERSION"
-  echo "--------------------------------------------------"
-
-  # Return version for reuse
   LAST_VERSION="$VERSION"
+  echo "--------------------------------------------------"
 }
 
 update_stable_channel() {
@@ -65,7 +68,11 @@ update_stable_channel() {
   echo "Updating Brave Stable..."
 
   RELEASE_DATA=$(curl -s "https://api.github.com/repos/brave/brave-browser/releases?per_page=100" | jq -r '
-    map(select(.name? and (.name | test("Nightly|Beta") | not) and .assets? and (.assets | any(.name | endswith("_amd64.deb")))))
+    map(select(
+      .prerelease == false and
+      .name? and (.name | test("Nightly|Beta") | not) and
+      .assets? and (.assets | any(.name | endswith("_amd64.deb")))
+    ))
     | sort_by(.published_at)
     | reverse
     | .[0]
@@ -111,6 +118,14 @@ update_origin_channel() {
   local ASSET_URL="https://github.com/brave/brave-browser/releases/download/v${PINNED_VERSION}/${PKG_NAME}_${PINNED_VERSION}_amd64.deb"
 
   echo "Asset URL: $ASSET_URL"
+
+  # Vérifie que le fichier existe avant de prefetch
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$ASSET_URL")
+  if [ "$HTTP_CODE" != "200" ]; then
+    echo "Warning: $PKG_NAME version $PINNED_VERSION not yet available on GitHub (HTTP $HTTP_CODE), skipping."
+    return 0
+  fi
+
   echo "Prefetching hash..."
   local HASH
   HASH=$(nix-prefetch-url "$ASSET_URL")
@@ -123,6 +138,7 @@ update_origin_channel() {
   UPDATED_VERSIONS["$PKG_NAME"]="$PINNED_VERSION"
   echo "--------------------------------------------------"
 }
+
 # --- Exécution ---
 
 update_channel "Nightly" "pkgs/brave-nightly.nix"
@@ -133,9 +149,8 @@ BETA_VERSION="$LAST_VERSION"
 
 update_stable_channel "pkgs/brave-stable.nix"
 
-# ✅ Origin suit la même version que son channel parent
 update_origin_channel "brave-origin-nightly" "pkgs/brave-origin-nightly.nix" "$NIGHTLY_VERSION"
-update_origin_channel "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$BETA_VERSION"
+update_origin_channel "brave-origin-beta"    "pkgs/brave-origin-beta.nix"    "$BETA_VERSION"
 
 if [ "$COMMIT" = true ]; then
   git config --global user.email "github-actions[bot]@users.noreply.github.com"
