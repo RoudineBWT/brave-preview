@@ -1,31 +1,39 @@
-name: Update Brave versions
+name: Update Brave Nightly
 
 on:
   schedule:
     - cron: "0 */6 * * *"
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
 
 jobs:
-  update:
+  update-flake:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/install-nix-action@v27
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Run update script
-        run: bash update.sh --commit
+        run: |
+          chmod +x update.sh
+          ./update.sh --commit
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+      - name: Verify build
+        run: |
+          nix build .#brave-nightly --accept-flake-config
+          nix build .#brave-beta --accept-flake-config
+          nix build .#brave-origin-nightly --accept-flake-config
+          nix build .#brave-stable --accept-flake-config
+          nix build .#brave-origin-beta --accept-flake-config
+
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit-message: "update: brave versions"
-          title: "Update Brave versions"
-          branch: update/brave-versions
-          delete-branch: true
+          commit_message: "chore: update brave versions"
+          file_pattern: pkgs/*.nix
+          branch: master
