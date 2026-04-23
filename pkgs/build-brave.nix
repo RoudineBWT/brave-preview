@@ -236,6 +236,9 @@ stdenv.mkDerivation {
 
       cp $BINARYWRAPPER $out/bin/${pname}
       chmod +x $out/bin/${pname}
+      substituteInPlace $out/bin/${pname} \
+          --replace-fail 'HERE="`dirname "$WRAPPER"`"' \
+          "HERE=\"$out/opt/brave.com/$BRAVE_DIR\""
 
       for exe in $out/opt/brave.com/$BRAVE_DIR/{brave,chrome_crashpad_handler}; do
           patchelf \
