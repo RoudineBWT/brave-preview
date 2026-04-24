@@ -5,20 +5,18 @@ set -e
 declare -A UPDATED_VERSIONS
 
 update_package() {
-  local LABEL=$1        # nom affiché
-  local TARGET_FILE=$2  # fichier .nix à mettre à jour
-  local ASSET_PREFIX=$3 # préfixe de l'asset .deb (ex: "brave-browser-beta_")
-  local PRERELEASE=$4   # "true" ou "false"
+  local LABEL=$1
+  local TARGET_FILE=$2
+  local ASSET_PREFIX=$3
 
   echo "Updating $LABEL..."
 
   local VERSION
   VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
     "https://api.github.com/repos/brave/brave-browser/releases?per_page=100" | \
-    jq -r --argjson prerelease "$PRERELEASE" --arg prefix "$ASSET_PREFIX" '
+    jq -r --arg prefix "$ASSET_PREFIX" '
       map(select(
-        .prerelease == $prerelease and
-        (.assets | any(.name | startswith($prefix) and endswith("_amd64.deb")))
+        .assets | any(.name | startswith($prefix) and endswith("_amd64.deb"))
       ))
       | sort_by(.published_at)
       | reverse
@@ -55,14 +53,11 @@ update_package() {
   echo "--------------------------------------------------"
 }
 
-# --- Exécution ---
-
-update_package "Brave Stable"         "pkgs/brave-stable.nix"        "brave-browser_"              false
-update_package "Brave Beta"           "pkgs/brave-beta.nix"          "brave-browser-beta_"         true
-update_package "Brave Nightly"        "pkgs/brave-nightly.nix"       "brave-browser-nightly_"      true
-# update_package "Brave Origin"         "pkgs/brave-origin.nix"        "brave-origin_"               true
-update_package "Brave Origin Beta"    "pkgs/brave-origin-beta.nix"   "brave-origin-beta_"          true
-update_package "Brave Origin Nightly" "pkgs/brave-origin-nightly.nix" "brave-origin-nightly_"     true
+update_package "Brave Stable"         "pkgs/brave-stable.nix"         "brave-browser_"
+update_package "Brave Beta"           "pkgs/brave-beta.nix"           "brave-browser-beta_"
+update_package "Brave Nightly"        "pkgs/brave-nightly.nix"        "brave-browser-nightly_"
+update_package "Brave Origin Beta"    "pkgs/brave-origin-beta.nix"    "brave-origin-beta_"
+update_package "Brave Origin Nightly" "pkgs/brave-origin-nightly.nix" "brave-origin-nightly_"
 
 echo "All done!"
 echo "Updated versions:"
