@@ -16,29 +16,54 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/brave/brave-browser/releases?per_page=1" | \
-            jq -r '.[0].tag_name')
-          CACHED=$(cat .last-brave-release 2>/dev/null || echo "none")
-          echo "Latest: $LATEST / Cached: $CACHED"
-          if [ "$LATEST" != "$CACHED" ]; then
-            echo "$LATEST" > .last-brave-release
+          check_asset() {
+            local PREFIX=$1
+            local CACHE_FILE=$2
+
+            LATEST=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/brave/brave-browser/releases?per_page=100" | \
+              jq -r --arg prefix "$PREFIX" '
+                map(select(
+                  .assets | any(.name | startswith($prefix) and endswith("_amd64.deb"))
+                ))
+                | sort_by(.published_at)
+                | reverse
+                | .[0].tag_name // empty
+              ')
+
+            CACHED=$(cat "$CACHE_FILE" 2>/dev/null || echo "none")
+            if [ "$LATEST" != "$CACHED" ]; then
+              echo "$LATEST" > "$CACHE_FILE"
+              echo "true"
+            else
+              echo "false"
+            fi
+          }
+
+          CHANGED=false
+
+          [ "$(check_asset 'brave-browser_'         .last-brave-stable)"         = "true" ] && CHANGED=true
+          [ "$(check_asset 'brave-browser-beta_'    .last-brave-beta)"            = "true" ] && CHANGED=true
+          [ "$(check_asset 'brave-browser-nightly_' .last-brave-nightly)"         = "true" ] && CHANGED=true
+          [ "$(check_asset 'brave-origin-beta_'     .last-brave-origin-beta)"     = "true" ] && CHANGED=true
+          [ "$(check_asset 'brave-origin-nightly_'  .last-brave-origin-nightly)"  = "true" ] && CHANGED=true
+
+          if [ "$CHANGED" = "true" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit .last-brave-release
+      - name: Commit cache files
         if: steps.check.outputs.changed == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update last brave release tracker"
-          file_pattern: .last-brave-release
+          commit_message: "chore: update brave release trackers"
+          file_pattern: .last-brave-*
           branch: main
 
       - name: Trigger update workflow
         if: steps.check.outputs.changed == 'true'
-        run: |
-          gh workflow run update.yml
+        run: gh workflow run update.yml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
