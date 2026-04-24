@@ -5,8 +5,7 @@ set -e
 declare -A UPDATED_VERSIONS
 LAST_VERSION=""
 
-# Override manuel pour origin-beta — mettre à "" pour utiliser la même version que brave-beta
-ORIGIN_BETA_VERSION_OVERRIDE="1.91.101"
+# La version de brave-origin-beta est détectée automatiquement depuis GitHub
 
 update_channel() {
   local CHANNEL=$1
@@ -96,6 +95,31 @@ update_stable_channel() {
   echo "--------------------------------------------------"
 }
 
+update_origin_beta_auto() {
+  local TARGET_FILE=$1
+
+  echo "Updating brave-origin-beta (auto-detecting latest version)..."
+
+  local VERSION
+  VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN"     "https://api.github.com/repos/brave/brave-browser/releases?per_page=100" |     jq -r '
+      map(select(
+        .prerelease == true and
+        (.assets | any(.name | startswith("brave-origin-beta_") and endswith("_amd64.deb")))
+      ))
+      | sort_by(.published_at)
+      | reverse
+      | .[0].tag_name // empty
+    ' | sed 's/^v//')
+
+  if [ -z "$VERSION" ]; then
+    echo "Error: Could not find latest brave-origin-beta release"
+    return 1
+  fi
+
+  echo "Latest brave-origin-beta version: $VERSION"
+  update_origin_channel "brave-origin-beta" "$TARGET_FILE" "$VERSION"
+}
+
 update_origin_channel() {
   local PKG_NAME=$1
   local TARGET_FILE=$2
@@ -139,8 +163,4 @@ update_stable_channel "pkgs/brave-stable.nix"
 
 update_origin_channel "brave-origin-nightly" "pkgs/brave-origin-nightly.nix" "$NIGHTLY_VERSION"
 
-if [ -n "$ORIGIN_BETA_VERSION_OVERRIDE" ]; then
-  update_origin_channel "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$ORIGIN_BETA_VERSION_OVERRIDE"
-else
-  update_origin_channel "brave-origin-beta" "pkgs/brave-origin-beta.nix" "$BETA_VERSION"
-fi
+update_origin_beta_auto "pkgs/brave-origin-beta.nix"
