@@ -60,7 +60,7 @@ update_package() {
 update_package "Brave Stable"         "pkgs/brave-stable.nix"        "brave-browser_"              false
 update_package "Brave Beta"           "pkgs/brave-beta.nix"          "brave-browser-beta_"         true
 update_package "Brave Nightly"        "pkgs/brave-nightly.nix"       "brave-browser-nightly_"      true
-update_package "Brave Origin"         "pkgs/brave-origin.nix"        "brave-origin_"               true
+# update_package "Brave Origin"         "pkgs/brave-origin.nix"        "brave-origin_"               true
 update_package "Brave Origin Beta"    "pkgs/brave-origin-beta.nix"   "brave-origin-beta_"          true
 update_package "Brave Origin Nightly" "pkgs/brave-origin-nightly.nix" "brave-origin-nightly_"     true
 
