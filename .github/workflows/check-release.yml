@@ -1,0 +1,44 @@
+name: Check Brave New Release
+
+on:
+  schedule:
+    - cron: "0 * * * *" # every hours
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for new releases
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/brave/brave-browser/releases?per_page=1" | \
+            jq -r '.[0].tag_name')
+          CACHED=$(cat .last-brave-release 2>/dev/null || echo "none")
+          echo "Latest: $LATEST / Cached: $CACHED"
+          if [ "$LATEST" != "$CACHED" ]; then
+            echo "$LATEST" > .last-brave-release
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit .last-brave-release
+        if: steps.check.outputs.changed == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update last brave release tracker"
+          file_pattern: .last-brave-release
+          branch: main
+
+      - name: Trigger update workflow
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          gh workflow run update.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
