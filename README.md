@@ -4,7 +4,7 @@ A **Nix Flake** that provides the latest **Nightly**, **Beta**, **Stable**, **Or
 
 This repository is automatically updated daily to track the official [Brave GitHub Releases](https://github.com/brave/brave-browser/releases) and Brave's apt repositories.
 
-> **Note**: This flake was originally based on [kcalvelli/brave-browser-previews](https://github.com/kcalvelli/brave-browser-previews) with additional channels added (stable, origin-beta) by [drishal/brave-browser-flake](https://github.com/drishal/brave-browser-flake) .
+> **Note**: This flake was originally based on [kcalvelli/brave-browser-previews](https://github.com/kcalvelli/brave-browser-previews) with additional channels added (stable, origin-beta) by [drishal/brave-preview](https://github.com/drishal/brave-preview) .
 
 ## Features
 
@@ -107,19 +107,19 @@ You can also run the browsers without installing them:
 
 ```bash
 # Run Nightly
-nix run github:roudinebwt/brave-browser-flake#brave-nightly
+nix run github:roudinebwt/brave-preview#brave-nightly
 
 # Run Beta
-nix run github:roudinebwt/brave-browser-flake#brave-beta
+nix run github:roudinebwt/brave-preview#brave-beta
 
 # Run Stable
-nix run github:roudinebwt/brave-browser-flake#brave-stable
+nix run github:roudinebwt/brave-preview#brave-stable
 
 # Run Origin Nightly
-nix run github:roudinebwt/brave-browser-flake#brave-origin-nightly
+nix run github:roudinebwt/brave-preview#brave-origin-nightly
 
 # Run Origin Beta
-nix run github:roudinebwt/brave-browser-flake#brave-origin-beta
+nix run github:roudinebwt/brave-preview#brave-origin-beta
 ```
 
 ## How It Works
