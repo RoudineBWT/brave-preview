@@ -4,7 +4,7 @@ A **Nix Flake** that provides the latest **Nightly**, **Beta**, **Stable**, **Or
 
 This repository is automatically updated daily to track the official [Brave GitHub Releases](https://github.com/brave/brave-browser/releases) and Brave's apt repositories.
 
-> **Note**: This flake was originally based on [kcalvelli/brave-browser-previews](https://github.com/kcalvelli/brave-browser-previews) with additional channels added (stable, origin-beta) by [drishal/brave-preview](https://github.com/drishal/brave-preview) .
+> **Note**: This flake was originally based on [kcalvelli/brave-browser-previews](https://github.com/kcalvelli/brave-browser-previews) with additional channels added (stable, origin-beta) by [https://github.com/drishal/brave-](https://github.com/drishal/brave-browser-flake).
 
 ## Features
 
