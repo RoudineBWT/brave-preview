@@ -28,6 +28,7 @@ jobs:
           - brave-origin-nightly
           - brave-stable
           - brave-origin-beta
+          - brave-origin
     steps:
       - uses: actions/checkout@v4
 

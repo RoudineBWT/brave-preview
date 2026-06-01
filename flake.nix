@@ -30,6 +30,7 @@
           brave-beta = pkgs.brave-beta;
           brave-origin-nightly = pkgs.brave-origin-nightly;
           brave-stable = pkgs.brave-stable;
+          brave-origin = pkgs.brave-origin;
           brave-origin-beta = pkgs.brave-origin-beta;
           default = pkgs.brave-nightly;
         };

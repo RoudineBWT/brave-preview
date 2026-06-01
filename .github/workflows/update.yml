@@ -32,6 +32,7 @@ jobs:
           nix build .#brave-origin-nightly --accept-flake-config
           nix build .#brave-stable --accept-flake-config
           nix build .#brave-origin-beta --accept-flake-config
+          nix build .#brave-origin --accept-flake-config
 
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
