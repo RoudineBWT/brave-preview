@@ -9,12 +9,13 @@ This repository is automatically updated daily to track the official [Brave GitH
 ## Features
 
 - **Automated Updates**: A GitHub Action runs daily to fetch the latest versions and SRI hashes directly from Brave's release API and apt index.
-- **Five Channels**:
+- **Six Channels**:
     - **`brave-nightly`**: The bleeding-edge version. *Note: Enabled with `--enable-features=BraveAIChatAgentProfile` by default for AI Agent testing.*
     - **`brave-beta`**: The beta channel release.
     - **`brave-stable`**: The stable channel release. Often more up-to-date than nixpkgs' `brave`.
     - **`brave-origin-nightly`**: [Brave Origin](https://brave.com/origin/) nightly — Brave's privacy/adblock/Shields stack without the extra features (Rewards, Wallet, AI, etc.).
     - **`brave-origin-beta`**: [Brave Origin](https://brave.com/origin/) beta — same as Origin Nightly but on the beta channel.
+    - **`brave-origin`**: [Brave Origin](https://brave.com/origin/) stable — same as both Origin but on the stable channel.
 - **Pure Flake**: Designed to be easily consumed as a flake input in your NixOS or Home Manager configuration.
 
 ## Usage
@@ -120,6 +121,9 @@ nix run github:roudinebwt/brave-preview#brave-origin-nightly
 
 # Run Origin Beta
 nix run github:roudinebwt/brave-preview#brave-origin-beta
+
+# Run Origin Stable
+nix run github:roudinebwt/brave-preview#brave-origin
 ```
 
 ## How It Works
