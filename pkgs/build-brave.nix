@@ -253,6 +253,7 @@ stdenv.mkDerivation {
           --replace-warn /usr/bin/brave-browser-nightly $out/bin/${pname} \
           --replace-warn /usr/bin/brave-origin-nightly $out/bin/${pname} \
           --replace-warn /usr/bin/brave-origin-beta $out/bin/${pname} \
+          --replace-warn /usr/bin/brave-origin-stable $out/bin/${pname} \
           --replace-warn /usr/bin/brave-origin $out/bin/${pname}
 
       # Add StartupWMClass for proper application identification in Wayland compositors
