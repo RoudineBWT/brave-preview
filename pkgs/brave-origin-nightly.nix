@@ -1,7 +1,7 @@
 { callPackage, fetchurl }:
 let
-  version = "1.100.43";
-  hash = "1nlmkqdmn4ccyxiln23jjxcp29qm43d65irqkb8wi8y9r30d2vgk";
+  version = "1.101.2";
+  hash = "0xwx30gi5g3sc1ix2g4kawr2l1yz0qz7a7hyf65fl7qnc785dmic";
 in
 callPackage ./build-brave.nix { } {
   pname = "brave-origin-nightly";
